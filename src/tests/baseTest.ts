@@ -72,7 +72,7 @@ const test = base.extend<CustomFixture>({
 
     loginPageObject: async ({ page }, use) => {
         const loginPageObject = new LoginPage(page);
-        await loginPageObject.login(process.env.USER_ID, decrypted);
+        await loginPageObject.login(process.env.USER_ID!, decrypted);
         await use(loginPageObject);
         await loginPageObject.logout();
     },

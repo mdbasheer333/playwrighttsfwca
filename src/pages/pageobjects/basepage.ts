@@ -1,14 +1,10 @@
-/**
- * @typedef {import('@playwright/test').Page} Page
- */
+import { Page} from "@playwright/test";
 
 export default class BasePage {
+    
+    readonly page: Page;
 
-    /**
-     * @param {Page} page
-     */
-
-    constructor(page) {
+    constructor(page: Page) {
         this.page = page;
     }
 
