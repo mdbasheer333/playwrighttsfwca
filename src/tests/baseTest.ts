@@ -15,7 +15,7 @@ import { dirname, resolve } from 'path';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const env = process.env.NODE_ENV || 'qa';  
+const env = process.env.ENV || 'qa';  
 
 const envPath = resolve(__dirname, '../../config/.env.' + env);
 dotenv.config({ path: envPath });
