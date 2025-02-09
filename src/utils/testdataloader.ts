@@ -4,7 +4,7 @@ import csv from 'csv-parser';
 import XLSX from 'xlsx';
 
 
-export async function createJsonObjectFromFolder(folderPath) {
+export async function createJsonObjectFromFolder(folderPath:string) {
     const jsonObject = {};
 
     // Read all files in the folder
@@ -41,7 +41,7 @@ export async function createCsvDataFromFolder(folderPath) {
     return csvData;
 }
 
-function parseCsv(filePath) {
+function parseCsv(filePath:string) {
     return new Promise((resolve, reject) => {
         const results = [];
         fs.createReadStream(filePath)
@@ -52,7 +52,7 @@ function parseCsv(filePath) {
     });
 }
 
-export async function createExcelDataFromFolder(folderPath) {
+export async function createExcelDataFromFolder(folderPath:string) {
     const excelData = {};
     const files = fs.readdirSync(folderPath);
     for (const file of files) {
@@ -67,7 +67,7 @@ export async function createExcelDataFromFolder(folderPath) {
     return excelData;
 }
 
-function parseExcel(filePath) {
+function parseExcel(filePath:string) {
     const workbook = XLSX.readFile(filePath);
     const sheetNames = workbook.SheetNames;
     const sheetsData = {};

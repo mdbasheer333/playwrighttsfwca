@@ -35,3 +35,13 @@ to genarate encrypted password:
 
    makesure to comment back 33 & 34
    
+
+-----------------
+To open UI mode, run the following command in your terminal:
+ENV=qa npx playwright test --project="Google Chrome" --headed --grep '@sanityparam' --ui
+-----------------
+
+-----------------
+-----------------
+-----------------
+-----------------

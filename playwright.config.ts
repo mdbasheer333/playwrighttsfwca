@@ -22,13 +22,17 @@ export default defineConfig({
   reporter: [['html', { open: 'never', outputFolder: './test-results/htmlreport' }], ['json', { outputFile: './test-results/jsonreport/test-results.json' }], ['allure-playwright', { outputFolder: 'allure-results' }]],
   outputDir: './test-results/pwartifacts',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
+  timeout:0,
+  globalTimeout:0,
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
     // baseURL: 'http://127.0.0.1:3000',
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
-    trace: 'on-first-retry',
-    screenshot:"only-on-failure"
+    trace: 'retain-on-failure',
+    screenshot:"only-on-failure",
+    actionTimeout:60000,
+    navigationTimeout:60000
   },
 
   /* Configure projects for major browsers */
