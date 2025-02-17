@@ -42,6 +42,9 @@ ENV=qa npx playwright test --project="Google Chrome" --headed --grep '@sanitypar
 -----------------
 
 -----------------
+light house
+https://www.npmjs.com/package/playwright-lighthouse
+https://github.com/abhinaba-ghosh/playwright-lighthouse#readme
 -----------------
 -----------------
 -----------------

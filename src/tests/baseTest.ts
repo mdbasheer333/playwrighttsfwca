@@ -1,9 +1,14 @@
-import { test as base, expect } from '@playwright/test';
+import { test as base, expect, chromium, Page } from '@playwright/test';
 import crypto from 'crypto';
 import { secretKey, ivHex } from "../utils/passwordencrypt";
 import LoginPage from '../pages/pageobjects/loginpage';
 import AddressPage from "../pages/pageobjects/addresspage";
 import { createJsonObjectFromFolder, createCsvDataFromFolder, createExcelDataFromFolder } from '../utils/testdataloader'
+
+import os from 'os';
+import path from 'path';
+import type { BrowserContext } from '@playwright/test';
+
 
 import * as allure from "allure-js-commons";
 import { ContentType } from "allure-js-commons";
@@ -15,7 +20,7 @@ import { dirname, resolve } from 'path';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const env = process.env.ENV || 'qa';  
+const env = process.env.ENV || 'qa';
 
 const envPath = resolve(__dirname, '../../config/.env.' + env);
 dotenv.config({ path: envPath });
@@ -26,13 +31,13 @@ decrypted += decipher.final('utf8');
 
 const envVars = { ...process.env };
 
-type CustomFixture={
-    envConfigData:any,
-    testData:any,
-    testCsvData:any,
-    testExlData:any,
-    loginPageObject:LoginPage,
-    addressPageObject:AddressPage
+type CustomFixture = {
+    envConfigData: any,
+    testData: any,
+    testCsvData: any,
+    testExlData: any,
+    loginPageObject: LoginPage,
+    addressPageObject: AddressPage
 }
 
 const test = base.extend<CustomFixture>({
@@ -55,7 +60,7 @@ const test = base.extend<CustomFixture>({
         await use(envVars);
     },
 
-    testData: async ({}, use: (data: any) => Promise<void>) => {
+    testData: async ({ }, use: (data: any) => Promise<void>) => {
         let tData = await createJsonObjectFromFolder('./src/data/json')
         await use(tData);
     },
@@ -84,4 +89,54 @@ const test = base.extend<CustomFixture>({
 
 });
 
-export { test, expect };
+
+const lighthouseTest = base.extend<
+    {
+        authenticatePage: Page
+        context: BrowserContext
+    },
+    { port: number }
+>({
+    port: [
+        async ({ }, use) => {
+            const port = 9222;
+            await use(port);
+        },
+        { scope: 'worker' },
+    ],
+
+    context: [
+        async ({ port, launchOptions }, use) => {
+            const userDataDir = path.join(os.tmpdir(), 'pw', String(Math.random()));
+            const context = await chromium.launchPersistentContext(userDataDir, {
+                args: [
+                    ...(launchOptions.args || []),
+                    `--remote-debugging-port=${port}`,
+                ],
+            });
+            await use(context);
+            await context.close();
+        },
+        { scope: 'test' },
+    ],
+
+    authenticatePage: [
+        async ({ page }, use) => {
+            await page.goto(process.env.APP_URL!);
+            await use(page);
+        },
+        { scope: 'test' },
+    ],
+});
+
+const lighthouseReporterConfig ={
+    formats: {
+            json: true, //defaults to false
+            html: true, //defaults to false
+            csv: true, //defaults to false
+    },
+    name: `lighthouse_reporter`, //defaults to `lighthouse-${new Date().getTime()}`
+    directory: `./lighthouse`, //defaults to `${process.cwd()}/lighthouse`
+}
+
+export { test, expect, lighthouseTest, lighthouseReporterConfig};
