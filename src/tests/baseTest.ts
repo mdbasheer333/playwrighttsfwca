@@ -4,32 +4,13 @@ import { secretKey, ivHex } from "../utils/passwordencrypt";
 import LoginPage from '../pages/pageobjects/loginpage';
 import AddressPage from "../pages/pageobjects/addresspage";
 import { createJsonObjectFromFolder, createCsvDataFromFolder, createExcelDataFromFolder } from '../utils/testdataloader'
+import loadEnvVar from '../utils/envdataloader'
 
 import os from 'os';
 import path from 'path';
 import type { BrowserContext } from '@playwright/test';
+var decrypted;
 
-
-import * as allure from "allure-js-commons";
-import { ContentType } from "allure-js-commons";
-
-import dotenv from 'dotenv';
-import { fileURLToPath } from 'url';
-import { dirname, resolve } from 'path';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-const env = process.env.ENV || 'qa';
-
-const envPath = resolve(__dirname, '../../config/.env.' + env);
-dotenv.config({ path: envPath });
-
-const decipher = crypto.createDecipheriv('aes-256-cbc', Buffer.from(secretKey, 'hex'), Buffer.from(ivHex, 'hex'));
-let decrypted = decipher.update(process.env.SECRET_KEY!, 'hex', 'utf8');
-decrypted += decipher.final('utf8');
-
-const envVars = { ...process.env };
 
 type CustomFixture = {
     envConfigData: any,
@@ -42,7 +23,16 @@ type CustomFixture = {
 
 const test = base.extend<CustomFixture>({
 
-    page: async ({ page }, use, testInfo) => {
+    page: async ({ page, envConfigData,contextOptions, launchOptions, }, use, testInfo) => {       
+
+        if(testInfo.project.name.includes("_"))
+            loadEnvVar(testInfo.project.name.split("_")[0]); 
+        else
+            loadEnvVar(); 
+        const decipher = crypto.createDecipheriv('aes-256-cbc', Buffer.from(secretKey, 'hex'), Buffer.from(ivHex, 'hex'));
+        decrypted = decipher.update(process.env.SECRET_KEY!, 'hex', 'utf8');
+        decrypted += decipher.final('utf8');
+
         await page.goto(process.env.APP_URL!);
         await use(page);
         if (testInfo.status == 'failed') {
@@ -57,6 +47,7 @@ const test = base.extend<CustomFixture>({
     },
 
     envConfigData: async ({ }, use: (data: any) => Promise<void>) => {
+        const envVars = { ...process.env };
         await use(envVars);
     },
 

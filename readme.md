@@ -46,5 +46,7 @@ light house
 https://www.npmjs.com/package/playwright-lighthouse
 https://github.com/abhinaba-ghosh/playwright-lighthouse#readme
 -----------------
+0824: running same tc in diff env with out dependancy on env var set
+npx playwright test --project=prod_chromium --project=stage_chromium --headed --grep '@sanity'
 -----------------
 -----------------

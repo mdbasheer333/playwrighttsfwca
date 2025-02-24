@@ -41,7 +41,18 @@ export default defineConfig({
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
     },
-
+    {
+      name: 'stage_chromium',
+      use: { ...devices['Desktop Chrome'] },
+    },
+    {
+      name: 'qa_chromium',
+      use: { ...devices['Desktop Chrome'] },
+    },
+    {
+      name: 'prod_chromium',
+      use: { ...devices['Desktop Chrome'] },
+    },
     {
       name: 'firefox',
       use: { ...devices['Desktop Firefox'] },
