@@ -1,15 +1,17 @@
 import AddressPageLocators from '../locators/addresspagelocators';
-import BasePage from './basepage';
+import {BasePage,step} from './basepage';
 import { Page} from "@playwright/test";
 
 
 export default class AddressPage extends BasePage {
     
+    public name = "AddressPage Page POM"
 
     constructor(page: Page) {
         super(page);
     }
 
+    @step('add address step')
     async addTheAddress(data:Object):Promise<void> {
         await this.page.locator(AddressPageLocators.EDIT_ADDR_BOOK_LINK).click();
         await this.page.locator(AddressPageLocators.NEW_ADDR_BUTTON).click();
