@@ -112,7 +112,14 @@ const lighthouseTest = base.extend<
     ],
 
     authenticatePage: [
-        async ({ page }, use) => {
+        async ({ page }, use, testInfo) => {
+            if(testInfo.project.name.includes("_"))
+                loadEnvVar(testInfo.project.name.split("_")[0]); 
+            else
+                loadEnvVar(); 
+            const decipher = crypto.createDecipheriv('aes-256-cbc', Buffer.from(secretKey, 'hex'), Buffer.from(ivHex, 'hex'));
+            decrypted = decipher.update(process.env.SECRET_KEY!, 'hex', 'utf8');
+            decrypted += decipher.final('utf8');
             await page.goto(process.env.APP_URL!);
             await use(page);
         },

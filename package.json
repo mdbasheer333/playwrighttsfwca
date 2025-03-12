@@ -19,5 +19,8 @@
     "ts-node": "^10.9.2",
     "typescript": "^5.7.3",
     "xlsx": "^0.18.5"
+  },
+  "dependencies": {
+    "fast-csv": "^5.0.2"
   }
 }

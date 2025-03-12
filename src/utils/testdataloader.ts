@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import csv from 'csv-parser';
 import XLSX from 'xlsx';
-
+import { writeToStream } from 'fast-csv';
 
 export async function createJsonObjectFromFolder(folderPath:string) {
     const jsonObject = {};
@@ -78,4 +78,24 @@ function parseExcel(filePath:string) {
     });
 
     return sheetsData;
+}
+
+export async function writeCSV(filePath, data, mode = 'o') {
+    return new Promise<void>((resolve, reject) => {
+        if (data.length === 0) {
+            return reject(new Error("No data to write!"));
+        }
+        const fileExists = fs.existsSync(filePath);
+        const appendMode = mode === 'a' && fileExists;
+        const writeStream = fs.createWriteStream(filePath, { flags: appendMode ? 'a' : 'w' });
+        if (appendMode) {
+            writeStream.write("\n");
+        }
+        writeToStream(writeStream, data, { headers: !fileExists || mode === 'o' })
+            .on('finish', () => {
+                console.log(`CSV file ${mode === 'a' ? 'appended' : 'written'} successfully: ${filePath}`);
+                resolve();
+            })
+            .on('error', (err) => reject(err));
+    });
 }
