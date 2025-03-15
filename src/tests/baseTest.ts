@@ -1,4 +1,4 @@
-import { test as base, expect, chromium, Page } from '@playwright/test';
+import { test as base, expect, chromium, Page, APIRequestContext } from '@playwright/test';
 import crypto from 'crypto';
 import { secretKey, ivHex } from "../utils/passwordencrypt";
 import LoginPage from '../pages/pageobjects/loginpage';
@@ -9,6 +9,8 @@ import loadEnvVar from '../utils/envdataloader'
 import os from 'os';
 import path from 'path';
 import type { BrowserContext } from '@playwright/test';
+import { globalConfig } from '../global/global.config';
+import AllureLogger from '../global/logger';
 var decrypted;
 
 
@@ -18,17 +20,21 @@ type CustomFixture = {
     testCsvData: any,
     testExlData: any,
     loginPageObject: LoginPage,
-    addressPageObject: AddressPage
+    addressPageObject: AddressPage,
+    testApiJsonData: any,
+    globalContext: typeof globalConfig;
+    apiRequest: APIRequestContext;
+    logger: AllureLogger
 }
 
 const test = base.extend<CustomFixture>({
 
-    page: async ({ page, envConfigData,contextOptions, launchOptions, }, use, testInfo) => {       
+    page: async ({ page, envConfigData, contextOptions, launchOptions, }, use, testInfo) => {
 
-        if(testInfo.project.name.includes("_"))
-            loadEnvVar(testInfo.project.name.split("_")[0]); 
+        if (testInfo.project.name.includes("_"))
+            loadEnvVar(testInfo.project.name.split("_")[0]);
         else
-            loadEnvVar(); 
+            loadEnvVar();
         const decipher = crypto.createDecipheriv('aes-256-cbc', Buffer.from(secretKey, 'hex'), Buffer.from(ivHex, 'hex'));
         decrypted = decipher.update(process.env.SECRET_KEY!, 'hex', 'utf8');
         decrypted += decipher.final('utf8');
@@ -46,6 +52,29 @@ const test = base.extend<CustomFixture>({
         }
     },
 
+    globalContext: async ({ }, use) => {
+        await use(globalConfig);
+    },
+
+    apiRequest: async ({ playwright }, use, testInfo) => {
+        if (testInfo.project.name.includes("_"))
+            loadEnvVar(testInfo.project.name.split("_")[0]);
+        else
+            loadEnvVar();
+        const decipher = crypto.createDecipheriv('aes-256-cbc', Buffer.from(secretKey, 'hex'), Buffer.from(ivHex, 'hex'));
+        decrypted = decipher.update(process.env.SECRET_KEY!, 'hex', 'utf8');
+        decrypted += decipher.final('utf8');
+        const apiRequest = await playwright.request.newContext({
+            baseURL: process.env.REST_BASE_URL,
+            extraHTTPHeaders: {
+                Accept: "application/json",
+                'Content-Type': 'application/json',
+            },
+        });
+        await use(apiRequest);
+        //await apiRequest.dispose();
+    },
+
     envConfigData: async ({ }, use: (data: any) => Promise<void>) => {
         const envVars = { ...process.env };
         await use(envVars);
@@ -54,6 +83,11 @@ const test = base.extend<CustomFixture>({
     testData: async ({ }, use: (data: any) => Promise<void>) => {
         let tData = await createJsonObjectFromFolder('./src/data/json')
         await use(tData);
+    },
+
+    testApiJsonData: async ({ }, use: (data: any) => Promise<void>) => {
+        let testApiJsonData = await createJsonObjectFromFolder('./src/data/json/api_data')
+        await use(testApiJsonData);
     },
 
     testCsvData: async ({ }, use: (data: any) => Promise<void>) => {
@@ -76,10 +110,14 @@ const test = base.extend<CustomFixture>({
     addressPageObject: async ({ page }, use) => {
         const addressPageObject = new AddressPage(page);
         await use(addressPageObject);
-    }
+    },
+
+    logger: async ({ }, use) => {
+        const loggerPage = new AllureLogger();
+        await use(loggerPage);
+    },
 
 });
-
 
 const lighthouseTest = base.extend<
     {
@@ -113,10 +151,10 @@ const lighthouseTest = base.extend<
 
     authenticatePage: [
         async ({ page }, use, testInfo) => {
-            if(testInfo.project.name.includes("_"))
-                loadEnvVar(testInfo.project.name.split("_")[0]); 
+            if (testInfo.project.name.includes("_"))
+                loadEnvVar(testInfo.project.name.split("_")[0]);
             else
-                loadEnvVar(); 
+                loadEnvVar();
             const decipher = crypto.createDecipheriv('aes-256-cbc', Buffer.from(secretKey, 'hex'), Buffer.from(ivHex, 'hex'));
             decrypted = decipher.update(process.env.SECRET_KEY!, 'hex', 'utf8');
             decrypted += decipher.final('utf8');
@@ -127,14 +165,14 @@ const lighthouseTest = base.extend<
     ],
 });
 
-const lighthouseReporterConfig ={
+const lighthouseReporterConfig = {
     formats: {
-            json: true, //defaults to false
-            html: true, //defaults to false
-            csv: true, //defaults to false
+        json: true, //defaults to false
+        html: true, //defaults to false
+        csv: true, //defaults to false
     },
     name: `lighthouse_reporter`, //defaults to `lighthouse-${new Date().getTime()}`
     directory: `./lighthouse`, //defaults to `${process.cwd()}/lighthouse`
 }
 
-export { test, expect, lighthouseTest, lighthouseReporterConfig};
+export { test, expect, lighthouseTest, lighthouseReporterConfig };

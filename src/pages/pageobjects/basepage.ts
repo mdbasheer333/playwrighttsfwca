@@ -1,10 +1,14 @@
 import { Page, test } from "@playwright/test";
+import { attachment, step as allurestep, ContentType, logStep } from "allure-js-commons";
+import AllureLogger from "../../global/logger";
 
-export class BasePage {
+
+export class BasePage extends AllureLogger{
 
     readonly page: Page;
 
     constructor(page: Page) {
+        super();
         this.page = page;
     }
 
@@ -36,18 +40,4 @@ export class BasePage {
         return parsedData;
     }
 
-}
-
-export function step(stepName?: string) {
-    return function decorator(
-        target: Function,
-        context: ClassMethodDecoratorContext
-    ) {
-        return function replacementMethod(...args: any) {
-            const name = `${stepName || (context.name as string)} (${this.name})`
-            return test.step(name, async () => {
-                return await target.call(this, ...args)
-            })
-        }
-    }
 }

@@ -4,7 +4,7 @@ import { defineConfig, devices } from '@playwright/test';
 export default defineConfig({
 
   testDir: './src/tests/',
-  testMatch: '**/*.spec.ts',
+  testMatch: ['**/*.spec.ts'],
 
   /* Run tests in files in parallel */
   fullyParallel: false,
@@ -19,7 +19,7 @@ export default defineConfig({
   workers: process.env.CI ? 1 : 1,
 
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  reporter: [['html', { open: 'never', outputFolder: './test-results/htmlreport' }], ['json', { outputFile: './test-results/jsonreport/test-results.json' }], ['allure-playwright', { outputFolder: 'allure-results' }]],
+  reporter: [['html', { open: 'never', outputFolder: './test-results/htmlreport' }], ['json', { outputFile: './test-results/jsonreport/test-results.json' }], ['allure-playwright', { detail:false, outputFolder: 'allure-results' }]],
   outputDir: './test-results/pwartifacts',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   timeout:0,
@@ -38,19 +38,37 @@ export default defineConfig({
   /* Configure projects for major browsers */
   projects: [
     {
+      name:'prod_setUp',
+      testDir:"src/tests",
+      testMatch:"globalSetup.ts"
+    },
+    {
+      name:'qa_setUp',
+      testDir:"src/tests",
+      testMatch:"globalSetup.ts"
+    },
+    {
+      name:'stage_setUp',
+      testDir:"src/tests",
+      testMatch:"globalSetup.ts"
+    },
+    {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
     },
     {
       name: 'stage_chromium',
+      dependencies:["stage_setUp"],
       use: { ...devices['Desktop Chrome'] },
     },
     {
       name: 'qa_chromium',
+      dependencies:["qa_setUp"],
       use: { ...devices['Desktop Chrome'] },
     },
     {
       name: 'prod_chromium',
+      dependencies:["prod_setUp"],
       use: { ...devices['Desktop Chrome'] },
     },
     {
